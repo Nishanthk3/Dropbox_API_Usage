@@ -3,10 +3,14 @@ Initial Commit, Working copy of oauth Implementation of Dropbox API
 
 Important 
 
-src/main/resources has dropboxConfig.properties which has 
+src/main/resources has dropboxConfig.properties which has
+
 dropbox.APP_KEY=
+
 dropbox.APP_SECRET=
+
 dropbox.REDIRECT_URI=
+
 dropbox.ENCODE_VALUE=
 
 Need to fill in these values in there so that the values will be used in the application for authentication to use dropbox api. 
