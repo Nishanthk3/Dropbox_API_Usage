@@ -1,4 +1,4 @@
-package com.nishanth.dropbox;
+package com.nishanth.dropbox.api;
 
 public class AccessTokenClass {
 

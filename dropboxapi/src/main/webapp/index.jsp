@@ -1,5 +1,6 @@
 <html>
-<body>
-<h2>Hello World!</h2>
-</body>
+<script>
+/* <jsp:forward page = "main" /> */
+<%response.sendRedirect(request.getContextPath()+"main");%>
+</script>
 </html>
