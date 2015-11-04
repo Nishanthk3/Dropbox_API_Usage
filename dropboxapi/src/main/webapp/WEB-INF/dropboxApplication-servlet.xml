@@ -48,4 +48,19 @@
 		</property>
 	</bean>
 
+	<bean id="APP_KEY" class="org.springframework.jndi.JndiObjectFactoryBean">
+	    <property name="jndiName" value="java:comp/env/APP_KEY"/>
+	</bean>
+	<bean id="APP_SECRET" class="org.springframework.jndi.JndiObjectFactoryBean">
+	    <property name="jndiName" value="java:comp/env/APP_SECRET"/>
+	</bean>
+	<bean id="REDIRECT_URI" class="org.springframework.jndi.JndiObjectFactoryBean">
+	    <property name="jndiName" value="java:comp/env/REDIRECT_URI"/>
+	</bean>
+	<bean id="REDIRECT_CONTEXTROOT" class="org.springframework.jndi.JndiObjectFactoryBean">
+	    <property name="jndiName" value="java:comp/env/REDIRECT_CONTEXTROOT"/>
+	</bean>
+	<bean id="ENCODE_VALUE" class="org.springframework.jndi.JndiObjectFactoryBean">
+	    <property name="jndiName" value="java:comp/env/ENCODE_VALUE"/>
+	</bean>
 </beans>

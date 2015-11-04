@@ -7,6 +7,7 @@
 <head>
 <title>EditOnFly Dropbox Text Editor</title>
 <meta charset="utf-8">
+<link rel="shortcut icon" href="../images/editonfly_favicon.ico">
 <link rel="stylesheet"
 	href="//code.jquery.com/ui/1.11.2/themes/smoothness/jquery-ui.css">
 <script src="//code.jquery.com/jquery-1.10.2.js"></script>
@@ -28,9 +29,20 @@
 <script>
 
 	var name = null;
+	var path = new Array();
+	var isDir = new Array();
 	var fileOpened = false;
+	var filesMetadata = null;
+	var dict = [];
 	$(document).ready(function() {
 		$("#btn_sign_out").hide();
+/* 	    $('#dialog_link').click(function () {
+	        $('#dialog').dialog('open');
+	        return false;
+	    }); */
+	    
+		/* $('#dialog').dialog(
+				{ autoOpen: false}); */
 	});
 
 	$(function() {
@@ -41,18 +53,24 @@
 			$("#btn_sign_out").show();
 		}
 	});
+
 </script>
 </head>
 <body>
 	<div align="center" style = "width:100%">
-		<h3 class="onmouseover" onclick ="location.href='main';">Welcome To EditOnFly</h3>
+		<h2 class="onmouseover" onclick ="location.href='main';">Edit It!</h2>
 			<button class="onmouseover" type="button" id="btn_sign_on" onclick="signIn();">Sign
 				In To Dropbox Account</button>
 			<button class="onmouseover" type="button" id="btn_sign_out" onclick="signOut();">Sign
 				Out</button>
 	</div>
 	<br />
-		
+<%-- 	<div id="dialog" title="Basic dialog">
+	  <p>This</p>
+		<form:select path="country">
+		    <form:options items="${directoryInfo}" />
+		</form:select>
+	</div>   --%>	
     <div class = "center" align="center" style = "width:60%">
 		<!-- <input id="accountId" type="button" onclick="accountInfoCall();" value="AccountInfo" /> -->
 
@@ -60,7 +78,8 @@
 			<h5>File Name:<input id=fileId type="text">
 			<input class="onmouseover" title="Opens the given filename i.e. present in your account" type="button" onclick="getFileCall();" value="Open" />
 			<input class="onmouseover" title="Persists the data present in the below textarea to your account" type="button" onclick="saveFile();" value="Save" />
-			<input class="onmouseover" title="Persists the data present in the below textarea to your account" type="button" onclick="saveAsFile();" value="Save As" /></h5>
+			<input class="onmouseover" title="Persists the data present in the below textarea to your account" type="button" onclick="saveAsFile();" value="Save As" />
+			<!-- <input id="dialog_link" class="onmouseover" title="Opens the files and folders in your account" type="button" onclick="getAll();" value="OpenAllFiles" /> --></h5> 
 		</form>
 		<!-- <input class="onmouseover" title="Clears the below textarea" type="button" onclick="clearText();" value="Clear" /> -->
 		<div>

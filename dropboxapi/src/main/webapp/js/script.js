@@ -49,6 +49,7 @@
 		    	}
 			},
 			success : function(data) {
+				openUrl(data);
 			},
 			error : function(XMLHttpRequest, textStatus, errorThrown) {
 				//alert("Status: " + textStatus);
@@ -56,7 +57,10 @@
 			}
 		});
 	} 
-
+ 	function openUrl(data)
+ 	{
+ 		location.href = data;
+ 	}
 	function accountInfoCall() {
 		$.ajax({
 			type : 'GET',
@@ -86,7 +90,7 @@
 		{
 			$.ajax({
 				type : 'GET',
-				url : "files.html?fileName=" + fileName,
+				url : "file.html?fileName=" + fileName,
 				statusCode: {
 				    404: function() {
 				      alert( "File Not Found" );
@@ -118,7 +122,53 @@
 			alert("Please enter the fileName");
 		}
 	}
+	function getAll() {
+		$.ajax({
+			type : 'GET',
+			url : "getFilesAndFolders.html",
+			statusCode: {
+			    404: function() {
+			      alert( "File Not Found" );
+			    },
+				401: function() {
+				      alert( "Unauthorized - Access Denied" );
+		    	}
+			},
+			success : function(text) {
+				if(text == "Not Signed In")
+				{
+					alert("Please sign into your dropbox account");
+				}
+				else
+				{
+					//directoryInfo = "{directoryInfo}";
+					var data = JSON.stringify(text);
+					filesMetadata = JSON.parse(data);
+					//alert(filesMetadata[0].is_dir);
+					$('#textarea').val(JSON.stringify(text));
+					//openDialog();
+					
+				}
+			},
+			error : function(XMLHttpRequest, textStatus, errorThrown) {
+				//alert("Status: " + textStatus);
+				//alert("Error: " + errorThrown);
+			} 
+		});
+	}
 
+//	function openDialog()
+//	{
+//		var i =0;
+//		for (i = 0; i < filesMetadata.length; i++) { 
+//			    path[i] = filesMetadata[i].path;
+//			    isDir[i] =  filesMetadata[i].is_dir;
+//		}
+//		if(filesMetadata.length > 0)
+//		{
+//			$('#dialog').dialog('open');
+//		}
+//	}
 	/*     function saveFile() {
 	 var fileName = $('#fileId').val();
 	 var fileContent = $('#textarea').val();

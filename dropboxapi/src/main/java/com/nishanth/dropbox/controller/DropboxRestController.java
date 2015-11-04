@@ -1,14 +1,16 @@
 package com.nishanth.dropbox.controller;
 
-import java.awt.Desktop;
 import java.io.File;
 import java.io.IOException;
-import java.net.URI;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 import javax.ws.rs.core.MediaType;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
@@ -21,6 +23,8 @@ import org.springframework.web.multipart.MultipartFile;
 import com.nishanth.dropbox.api.AccessTokenClass;
 import com.nishanth.dropbox.api.AccountInfo;
 import com.nishanth.dropbox.api.Ack;
+import com.nishanth.dropbox.api.Contents;
+import com.nishanth.dropbox.api.DirectoryInfo;
 import com.nishanth.dropbox.api.MetadataInfo;
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientResponse;
@@ -38,7 +42,7 @@ public class DropboxRestController {
 	private static final String AccessToken_URL = "https://api.dropbox.com/1/oauth2/token";
 	private static final String Response_Type = "code";
 
-	@Value("${dropbox.APP_KEY}")
+/*	@Value("${dropbox.APP_KEY}")
 	private String APP_KEY;
 
 	@Value("${dropbox.APP_SECRET}")
@@ -47,9 +51,23 @@ public class DropboxRestController {
 	@Value("${dropbox.REDIRECT_URI}")
 	private String REDIRECT_URI;
 
+	@Value("${dropbox.REDIRECT_CONTEXTROOT}")
+	private String REDIRECT_CONTEXTROOT;
+	
 	@Value("${dropbox.ENCODE_VALUE}")
-	private String ENCODE_VALUE;
+	private String ENCODE_VALUE;*/
 
+	@Autowired
+	private String APP_KEY;
+	@Autowired
+	private String APP_SECRET;
+	@Autowired
+	private String REDIRECT_URI;
+	@Autowired
+	private String REDIRECT_CONTEXTROOT;
+	@Autowired
+	private String ENCODE_VALUE;
+	
 	private AccessTokenClass accessTokenClass = null;
 
 	private static final String accountInfoUrl = "https://api.dropboxapi.com/1/account/info/";
@@ -58,16 +76,26 @@ public class DropboxRestController {
 	private static final String updateFileUrl = "https://content.dropboxapi.com/1/files_put/auto/";
 	private static final String addFileUrl = "https://content.dropboxapi.com/1/files_put/auto/";
 	private static final String signOut = "https://api.dropboxapi.com/1/disable_access_token";
-
-	private String displayName = null;
 	
 	ObjectMapper objMapper = new ObjectMapper();
 	
 	@RequestMapping(value = "main", method = RequestMethod.GET)
 	public void intialPage(ModelMap model, HttpServletRequest httpReq) 
 	{
-		model.addAttribute("name", displayName);
-		
+		HttpSession session = httpReq.getSession();
+		if(session.isNew() == true)
+		{
+			session.setAttribute("displayName", null);
+			session.setAttribute("accessToken", null);
+		}
+		if(session.getAttribute("displayName") != null)
+		{
+			model.addAttribute("name", session.getAttribute("displayName"));
+		}
+		else
+		{
+			model.addAttribute("name", null);
+		}
 	}
 
 	@RequestMapping( value="signIn")
@@ -76,37 +104,38 @@ public class DropboxRestController {
 		byte[] byteEncodeValue = Base64.encodeBase64(ENCODE_VALUE.getBytes());
 		String encodeValue = new String(byteEncodeValue);
 
-		String url = Dropbox_URL+"?client_id="+APP_KEY+"&response_type="+Response_Type+"&redirect_uri="+REDIRECT_URI+"&state="+encodeValue;
-
-		String os = System.getProperty("os.name").toLowerCase();
-		if(os.indexOf( "win" ) >= 0)
-		{
-			Runtime rt = Runtime.getRuntime();
-			rt.exec( "rundll32 url.dll,FileProtocolHandler " + url);
-		}
-		else if(os.indexOf( "mac" ) >= 0)
-		{
-			Runtime rt = Runtime.getRuntime();
-			rt.exec( "open " + url);
-		}
-		else
-		{
-			if(Desktop.isDesktopSupported()){
-				Desktop desktop = Desktop.getDesktop();
-				try {
-					desktop.browse(new URI(url));
-				} catch (Exception e) {
-					e.printStackTrace();
-					throw new RuntimeException();
-				}
-			}
-		}
-		return "redirect:/main";
+		String url = Dropbox_URL+"?client_id="+APP_KEY+"&response_type="+Response_Type+"&redirect_uri="+REDIRECT_URI+REDIRECT_CONTEXTROOT+"&state="+encodeValue;
+		return url;
+//		String os = System.getProperty("os.name").toLowerCase();
+//		if(os.indexOf( "win" ) >= 0)
+//		{
+//			Runtime rt = Runtime.getRuntime();
+//			rt.exec( "rundll32 url.dll,FileProtocolHandler " + url);
+//		}
+//		else if(os.indexOf( "mac" ) >= 0)
+//		{
+//			Runtime rt = Runtime.getRuntime();
+//			rt.exec( "open " + url);
+//		}
+//		else
+//		{
+//			if(Desktop.isDesktopSupported()){
+//				Desktop desktop = Desktop.getDesktop();
+//				try {
+//					desktop.browse(new URI(url));
+//				} catch (Exception e) {
+//					e.printStackTrace();
+//					throw new RuntimeException();
+//				}
+//			}
+//		}
+//		return "redirect:/main";
 	}
 
 	@RequestMapping( value="/mycallback",method = RequestMethod.GET)
 	public String oAuthCallback( @RequestParam("code") String code, @RequestParam("state") String state, HttpServletRequest httpReq)
 	{
+		HttpSession session = httpReq.getSession();
 		try {
 
 			Client client = Client.create();
@@ -117,7 +146,7 @@ public class DropboxRestController {
 					+ "grant_type=authorization_code&"
 					+ "client_id="+APP_KEY+"&"
 					+ "client_secret="+APP_SECRET+"&"
-					+ "redirect_uri="+REDIRECT_URI;
+					+ "redirect_uri="+REDIRECT_URI+REDIRECT_CONTEXTROOT;
 
 			ClientResponse response = webResource.type("application/x-www-form-urlencoded")
 					.post(ClientResponse.class, input);
@@ -129,19 +158,23 @@ public class DropboxRestController {
 			}
 			String str = response.getEntity(String.class);
 			accessTokenClass = new ObjectMapper().readValue(str, AccessTokenClass.class);
-			System.out.println("Access Token : "+accessTokenClass.getAccess_token());
 			
-			WebResource webResource1 = client.resource("http://localhost:8080/accountInfo.html");
-			ClientResponse response1 = webResource1.get(ClientResponse.class);
+			session.setAttribute("accessToken", accessTokenClass.getAccess_token());
+			
+			WebResource webResource1 = client.resource("http://localhost:8080/accountInfo");
+			ClientResponse response1 = webResource1.header("accessToken", session.getAttribute("accessToken")).get(ClientResponse.class);
+			
+			session.setAttribute("displayName", response1.getEntity(String.class));
+			
 			if (response.getStatus() != 200) {
-				System.out.println("Response = "+response.getStatus());
-				System.out.println("Content  = "+response.getEntity(String.class));
+				System.out.println("Response = "+response1.getStatus());
+				System.out.println("Content  = "+response1.getEntity(String.class));
 				throw new RuntimeException("Failed : HTTP error code : "+ response.getStatus());
 			}
 			if (response1.getStatus() != 200) {
-				System.out.println("Response = "+response.getStatus());
-				System.out.println("Content  = "+response.getEntity(String.class));
-				throw new RuntimeException("Failed : HTTP error code : "+ response.getStatus());
+				System.out.println("Response = "+response1.getStatus());
+				System.out.println("Content  = "+response1.getEntity(String.class));
+				throw new RuntimeException("Failed : HTTP error code : "+ response1.getStatus());
 			}
 		} catch (Exception e) {
 
@@ -155,6 +188,8 @@ public class DropboxRestController {
 	@RequestMapping( value="signOut",method = RequestMethod.GET)
 	public @ResponseBody String signOut(HttpServletRequest httpReq, HttpServletResponse httpResp)
 	{
+		HttpSession session = httpReq.getSession();
+		
 		String signOutInfo = null;
 		try {
 
@@ -162,14 +197,13 @@ public class DropboxRestController {
 
 			WebResource webResource = client.resource(signOut);
 
-			ClientResponse response = webResource.header("Authorization", "Bearer "+accessTokenClass.getAccess_token()).get(ClientResponse.class);
+			ClientResponse response = webResource.header("Authorization", "Bearer "+session.getAttribute("accessToken")).get(ClientResponse.class);
 
 			if(response.getStatus() == 200) 
 			{
 				signOutInfo = response.getEntity(String.class);
-				accessTokenClass.setAccess_token(null);
-				displayName = null;
-				AboutController.NAME = null;
+				session.setAttribute("displayName",null);
+				session.setAttribute("accessToken", null);
 			}
 			else if(response.getStatus() == 401)
 			{
@@ -199,23 +233,22 @@ public class DropboxRestController {
 	@RequestMapping( value="accountInfo",method = RequestMethod.GET)
 	public @ResponseBody String accountInfo(HttpServletRequest httpReq, HttpServletResponse httpResp)
 	{
+		String accessToken = httpReq.getHeader("accessToken");
 		String accountInfo = null;
+		AccountInfo account = null;
 		try {
 
 			Client client = Client.create();
 
 			WebResource webResource = client.resource(accountInfoUrl);
 
-			ClientResponse response = webResource.header("Authorization", "Bearer "+accessTokenClass.getAccess_token()).get(ClientResponse.class);
-
-			AccountInfo account = null;
+			ClientResponse response = webResource.header("Authorization", "Bearer "+accessToken).get(ClientResponse.class);
+			
 			if(response.getStatus() == 200) 
 			{
 				accountInfo = response.getEntity(String.class);
 				account = objMapper.readValue(accountInfo, AccountInfo.class);
-				displayName = account.getDisplay_name();
-				AboutController.NAME = displayName;
-				
+				System.out.println(account.getDisplay_name());
 			}
 			else if(response.getStatus() == 401)
 			{
@@ -239,21 +272,22 @@ public class DropboxRestController {
 			e.printStackTrace();
 			throw new RuntimeException();
 		}
-		return accountInfo;
+		return account.getDisplay_name();
 	}
 	
-	@RequestMapping( value="files",method = RequestMethod.GET)
+	@RequestMapping( value="file",method = RequestMethod.GET)
 	public @ResponseBody String files(@RequestParam("fileName") String fileName,HttpServletRequest httpReq, HttpServletResponse httpResp)
 	{
+		HttpSession session = httpReq.getSession();
 		String contentOfFileRequested = null;
 		try {
 			String input = getFilesURL+fileName;
 			Client client = Client.create();
 			WebResource webResource = client.resource(input);
 			ClientResponse response = null;
-			if(accessTokenClass != null && accessTokenClass.getAccess_token() != null)
+			if(session.getAttribute("accessToken") != null)
 			{
-				response = webResource.header("Authorization", "Bearer "+accessTokenClass.getAccess_token())
+				response = webResource.header("Authorization", "Bearer "+session.getAttribute("accessToken"))
 						.get(ClientResponse.class);
 			}
 			else
@@ -287,9 +321,28 @@ public class DropboxRestController {
 		}
 		return contentOfFileRequested;
 	}
+	
+	@RequestMapping( value="getFilesAndFolders",method = RequestMethod.GET, produces ={"application/json"})
+	public @ResponseBody List<DirectoryInfo> getAllFilesAndFolders(ModelMap model, HttpServletRequest httpReq, HttpServletResponse httpResp)
+	{
+		Ack ack = metadata(httpReq,httpResp);
+		List<Contents> contents = ack.getMetadata().getContents();
+		List<DirectoryInfo> directoryInfo = new ArrayList<DirectoryInfo>();
+		for(Contents c : contents)
+		{
+			DirectoryInfo d = new DirectoryInfo();
+			d.setIs_dir(c.getIs_dir());
+			d.setPath(c.getPath());
+			directoryInfo.add(d);
+		}
+		model.addAttribute("directoryInfo",directoryInfo);
+		return directoryInfo;
+		
+	}
 	@RequestMapping( value="metadata",method = RequestMethod.GET, produces ={"application/json"})
 	public @ResponseBody Ack metadata(HttpServletRequest httpReq, HttpServletResponse httpResp)
 	{
+		HttpSession session = httpReq.getSession();
 		MetadataInfo metadata = null;
 		Ack ack = null;
 		try {
@@ -297,9 +350,9 @@ public class DropboxRestController {
 			Client client = Client.create();
 			WebResource webResource = client.resource(input);
 			ClientResponse response = null;
-			if(accessTokenClass != null && accessTokenClass.getAccess_token() != null)
+			if(session.getAttribute("accessToken") != null)
 			{
-				response = webResource.header("Authorization", "Bearer "+accessTokenClass.getAccess_token())
+				response = webResource.header("Authorization", "Bearer "+session.getAttribute("accessToken"))
 						.accept(MediaType.APPLICATION_JSON)
 						.get(ClientResponse.class);
 			}
@@ -353,6 +406,7 @@ public class DropboxRestController {
 	public @ResponseBody String updateFile(@RequestParam("fileName") String fileName, @RequestParam("file") MultipartFile file,
 			HttpServletRequest httpReq, HttpServletResponse httpResp)
 	{
+		HttpSession session = httpReq.getSession();
 		try {
 			String input = updateFileUrl+fileName+"?override=true";
 
@@ -363,10 +417,10 @@ public class DropboxRestController {
 			file.transferTo(convFile);
 
 			ClientResponse response = null;
-			if(accessTokenClass != null && accessTokenClass.getAccess_token() != null)
+			if(session.getAttribute("accessToken") != null)
 			{
 				response = webResource.header("Content-Length",convFile.length())
-						.header("Authorization", "Bearer "+accessTokenClass.getAccess_token())
+						.header("Authorization", "Bearer "+session.getAttribute("accessToken"))
 						.put(ClientResponse.class, convFile);
 			}
 			else
@@ -403,6 +457,7 @@ public class DropboxRestController {
 	public @ResponseBody String addFile(@RequestParam("fileName") String fileName, @RequestParam("file") MultipartFile file,
 			HttpServletRequest httpReq, HttpServletResponse httpResp)
 	{
+		HttpSession session = httpReq.getSession();
 		try {
 			if(fileName.contains("fakepath") && fileName.contains("\\"))
 			{
@@ -417,10 +472,10 @@ public class DropboxRestController {
 			file.transferTo(convFile);
 
 			ClientResponse response = null;
-			if(accessTokenClass != null && accessTokenClass.getAccess_token() != null)
+			if(session.getAttribute("accessToken") != null)
 			{
 				response = webResource.header("Content-Length",convFile.length())
-						.header("Authorization", "Bearer "+accessTokenClass.getAccess_token())
+						.header("Authorization", "Bearer "+session.getAttribute("accessToken"))
 						.post(ClientResponse.class, convFile);
 			}
 			else
@@ -457,6 +512,7 @@ public class DropboxRestController {
 	public @ResponseBody String updateFile(@RequestParam("fileContent") String fileContent, @RequestParam("fileName") String fileName, 
 			HttpServletRequest httpReq, HttpServletResponse httpResp)
 	{
+		HttpSession session = httpReq.getSession();
 		try {
 			String input = updateFileUrl+fileName+"?override=true";
 
@@ -464,10 +520,10 @@ public class DropboxRestController {
 			WebResource webResource = client.resource(input);
 
 			ClientResponse response = null;
-			if(accessTokenClass != null && accessTokenClass.getAccess_token() != null)
+			if(session.getAttribute("accessToken") != null)
 			{
 				response = webResource.header("Content-Length",fileContent.length())
-						.header("Authorization", "Bearer "+accessTokenClass.getAccess_token())
+						.header("Authorization", "Bearer "+session.getAttribute("accessToken"))
 						.put(ClientResponse.class, fileContent);
 			}
 			else

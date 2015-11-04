@@ -1,6 +1,7 @@
 package com.nishanth.dropbox.controller;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
@@ -11,11 +12,12 @@ import org.springframework.web.bind.annotation.RequestMethod;
 @RequestMapping("/")
 public class AboutController {
 	
-	public static String NAME = null;
+	public static String displayName = null;
 
 	@RequestMapping(value = "about", method = RequestMethod.GET)
 	public void intialPage( ModelMap model, HttpServletRequest httpReq) 
 	{
-		model.addAttribute("name",NAME);
+		final HttpSession session = httpReq.getSession();
+		model.addAttribute("name", session.getAttribute("displayName"));
 	}
 }
