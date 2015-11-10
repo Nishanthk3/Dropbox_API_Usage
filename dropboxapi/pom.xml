@@ -4,7 +4,7 @@
 	<groupId>com.nishanth.dropbox</groupId>
 	<artifactId>dropboxapi</artifactId>
 	<packaging>war</packaging>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>1.0.0</version>
 	<name>dropboxapi Maven Webapp</name>
 	<url>http://maven.apache.org</url>
 	<dependencies>
