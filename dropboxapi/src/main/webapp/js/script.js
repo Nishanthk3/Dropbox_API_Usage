@@ -1,5 +1,5 @@
 /**
- * 
+ *  JavaScript Functions 
  */
 	function clearText()
 	{
@@ -21,11 +21,14 @@
 			success : function(data) {
 				$("#btn_sign_out").hide();
 				$("#btn_sign_on").removeAttr('disabled');
-				$("#btn_sign_on").text("Sign In To Dropbox Account");
+				$("#btn_sign_on").text("Dropbox Log In");
 				$('#textarea').val("");
 				$('#fileId').val("");
 				$('#add_file_name').val("");
 				$('#add_file').val("");
+				name = "";
+				var element = document.getElementById("container");
+				element.parentNode.removeChild(element);
 				fileOpened = false;
 				
 			},
@@ -141,13 +144,9 @@
 				}
 				else
 				{
-					//directoryInfo = "{directoryInfo}";
-					var data = JSON.stringify(text);
-					filesMetadata = JSON.parse(data);
-					//alert(filesMetadata[0].is_dir);
-					$('#textarea').val(JSON.stringify(text));
-					//openDialog();
-					
+					//var data = JSON.stringify(text);
+					//filesMetadata = JSON.parse(data);
+					$('#textarea').val(JSON.stringify(text));					
 				}
 			},
 			error : function(XMLHttpRequest, textStatus, errorThrown) {
@@ -157,98 +156,43 @@
 		});
 	}
 
-//	function openDialog()
-//	{
-//		var i =0;
-//		for (i = 0; i < filesMetadata.length; i++) { 
-//			    path[i] = filesMetadata[i].path;
-//			    isDir[i] =  filesMetadata[i].is_dir;
-//		}
-//		if(filesMetadata.length > 0)
-//		{
-//			$('#dialog').dialog('open');
-//		}
-//	}
-	/*     function saveFile() {
-	 var fileName = $('#fileId').val();
-	 var fileContent = $('#textarea').val();
-	 fileContent = fileContent.replace(/\r?\n/g, '\n');
-	 $.ajax({
-	 type : 'GET',
-	 url : "updateFile.html?fileContent="+fileContent+"&fileName="+fileName,
-	 success : function(text) {
-	 alert(text)
-	 },
-	 error: function(XMLHttpRequest, textStatus, errorThrown) { 
-	 alert("Status: " + textStatus); alert("Error: " + errorThrown); 
-	 }  
-	 });
-	 } */
 	function saveFile() {
-		var fileName = $('#fileId').val();
-		var fileContent = $('#textarea').val();
-		fileContent = fileContent.replace(/\r?\n/g, '\n');
-		if(fileOpened == false)
+		//var fileName = $('#fileId').val();
+		if(name.length > 0)
 		{
-			alert("Open the file to save it");
-		}
-		else if(fileName.length > 0)
-		{
-			$.ajax({
-				type : 'POST',
-				url : "updateFile.html?fileName=" + fileName,
-				data : {
-					fileContent : fileContent
-				},
-				statusCode: {
-				    404: function() {
-				      alert( "File Not Found" );
-				    },
-					401: function() {
-					      alert( "Unauthorized - Access Denied" );
-			    	}
-				},
-				success : function(text) {
-					if(text == "Not Signed In")
-					{
-						alert("Please sign into your dropbox account");
-					}
-					else if(text == "Updated Successfully")
-					{
-						alert("File Updated Successfully");
-						$('#textarea').val("");
-						$('#fileId').val("");
-					}
-				},
-				error : function(XMLHttpRequest, textStatus, errorThrown) {
-					//alert("Status: " + textStatus);
-					//alert("Error: " + errorThrown);
+			if(fileOpened == false)
+			{
+				alert("Choose a file from dropbox to save it");
+			}
+			else if(fileName.toString().indexOf(".txt") > -1)
+			{
+				save();
+			}
+			else
+			{
+				if (confirm('Are you sure you want to save this? Save recommended only if it is .txt or if the file has proper text data')) {
+					save();
 				}
-			});
+				else {
+					fileName = null;
+					$('#textarea').val("");
+				}
+			}
 		}
-		else
-		{
-			alert("Please open the file by typing the file name and click open");
+		else{
+			alert("Sign into dropbox");
 		}
 	}
 
-	function saveAsFile() {
-		var fileName;
-		if(fileOpened == true)
-		{
-			fileName = prompt("Please enter file name","");
-		}
+	function save()
+	{
 		var fileContent = $('#textarea').val();
 		fileContent = fileContent.replace(/\r?\n/g, '\n');
-		if(fileOpened == false)
-		{
-			alert("Open the file to save it");
-		}
-		else if(fileName.length > 0)
+		if(fileName.length > 0)
 		{
 			$.ajax({
 				type : 'POST',
-				url : "updateFile.html?fileName=" + fileName,
+				url : "updateFile.html?fileName=" + encodeURIComponent(fileName),
 				data : {
 					fileContent : fileContent
 				},
@@ -267,20 +211,77 @@
 					}
 					else if(text == "Updated Successfully")
 					{
-						alert("File Updated Successfully");
+						alert("File : "+ fileName +", Updated Successfully");
+						fileName = null;
 						$('#textarea').val("");
-						$('#fileId').val("");
+						fileOpened = false;
+						//$('#fileId').val("");
 					}
 				},
 				error : function(XMLHttpRequest, textStatus, errorThrown) {
+					fileName = null;
 					//alert("Status: " + textStatus);
 					//alert("Error: " + errorThrown);
 				}
 			});
 		}
-		else
+	}
+	function saveAsFile() {
+		if(name.length > 0)
 		{
-			alert("Please open the file by typing the file name and click open");
+			var fileName = null;
+			if(fileOpened == true)
+			{
+				fileName = prompt("Enter file name","");
+			}
+			else
+			{
+				alert("Choose a file from dropbox to save it");
+			}
+			var fileContent = $('#textarea').val();
+			fileContent = fileContent.replace(/\r?\n/g, '\n');
+			if(fileName.length > 0)
+			{
+				$.ajax({
+					type : 'POST',
+					url : "updateFile.html?fileName=" + encodeURIComponent(fileName),
+					data : {
+						fileContent : fileContent
+					},
+					statusCode: {
+					    404: function() {
+					      alert( "File Not Found" );
+					    },
+						401: function() {
+						      alert( "Unauthorized - Access Denied" );
+				    	}
+					},
+					success : function(text) {
+						if(text == "Not Signed In")
+						{
+							alert("Please sign into your dropbox account");
+						}
+						else if(text == "Updated Successfully")
+						{
+							alert("File Updated Successfully");
+							$('#textarea').val("");
+							$('#fileId').val("");
+							fileOpened = false;
+						}
+					},
+					error : function(XMLHttpRequest, textStatus, errorThrown) {
+						//alert("Status: " + textStatus);
+						//alert("Error: " + errorThrown);
+					}
+				});
+			}
+			else
+			{
+				alert("Please choose a file from dropbox to save it");
+			}
+		}
+		else{
+			alert("Sign into dropbox");
 		}
 	}
 
@@ -329,3 +330,54 @@
 		}
 	}
 	
+	function getFileName(url) {
+		var res = url.toString().split("/");
+		var fileNameSplitFromUrl = "";
+		for(var i = 0;i<res.length ;i++)
+		{
+			if(i > 5)
+			{
+				fileNameSplitFromUrl += res[i]+"/";
+			}
+		}
+		fileName = fileNameSplitFromUrl;
+		getFile(fileNameSplitFromUrl);
+	}
+
+	function getFile(fileNameSplitFromUrl) {
+		if(fileName.length > 0)
+		{
+			$.ajax({
+				type : 'GET',
+				url : "file.html?fileName=" + fileName,
+				statusCode: {
+				    404: function() {
+				      alert( "File Not Found" );
+				    },
+					401: function() {
+					      alert( "Unauthorized - Access Denied" );
+			    	}
+				},
+				success : function(text) {
+					if(text == "Not Signed In")
+					{
+						alert("Please sign into your dropbox account");
+					}
+					else
+					{
+						fileOpened = true;
+						text = text.replace(/\r?\n/g, '\n');
+						$('#textarea').val(text);
+					}
+				},
+				error : function(XMLHttpRequest, textStatus, errorThrown) {
+					//alert("Status: " + textStatus);
+					//alert("Error: " + errorThrown);
+				} 
+			});
+		}
+		else
+		{
+			alert("Please enter the fileName");
+		}
+	}

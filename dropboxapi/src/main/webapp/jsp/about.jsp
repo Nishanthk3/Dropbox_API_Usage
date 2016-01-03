@@ -41,14 +41,21 @@ $(function() {
 </head>
 <body>
 
-	<div align="center" style="width: 100%">
-	    <h5 class="onmouseover" onclick ="location.href='main';"><u>Home</u></h5>
-			<button class="onmouseover" type="button" id="btn_sign_on" onclick="signIn();">Sign
-				In To Dropbox Account</button>
-			<button class="onmouseover" type="button" id="btn_sign_out" onclick="signOut();">Sign
-				Out</button>
+	<div style = "width:100%; height:40px;float:left; box-sizing:border-box">
+		<div id="editonfly-home" align="center" style = "width:48%;height:40px; float:left">
+			<h3 class="onmouseover" onclick ="location.href='main';">EditOnFly</h3>
+		</div>
+		<div id="editonfly-sign" align="center" style = "width:52%;float:right;height:40px">
+			<div>
+				<button class="onmouseover" type="button" id="btn_sign_on" onclick="signIn();">Dropbox Log In</button>
+				<button class="onmouseover" type="button" id="btn_sign_out" onclick="signOut();">Log Out</button>
+			</div>
+		</div>
 	</div>
 	
+	<br/>
+	<br/>
+	<br/>
 	<div class="center" style="width: 60%">
 		<h4>EditOnFly ?</h4>
 		<h5>Dropbox does not allow you to edit text files in the dropbox application itself. Whenever you want to edit your text file that is present in

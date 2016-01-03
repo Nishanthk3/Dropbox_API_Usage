@@ -2,6 +2,7 @@ package com.nishanth.dropbox.controller;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -10,6 +11,8 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import javax.ws.rs.core.MediaType;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
@@ -38,6 +41,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 @RequestMapping("/")
 public class DropboxRestController {
 
+	private static final Logger logger = LoggerFactory.getLogger(DropboxRestController.class);
+	
 	private static final String Dropbox_URL = "https://www.dropbox.com/1/oauth2/authorize";
 	private static final String AccessToken_URL = "https://api.dropbox.com/1/oauth2/token";
 	private static final String Response_Type = "code";
@@ -248,7 +253,8 @@ public class DropboxRestController {
 			{
 				accountInfo = response.getEntity(String.class);
 				account = objMapper.readValue(accountInfo, AccountInfo.class);
-				System.out.println(account.getDisplay_name());
+				//System.out.println(account.getDisplay_name());
+				logger.debug(account.getDisplay_name());
 			}
 			else if(response.getStatus() == 401)
 			{
@@ -281,7 +287,8 @@ public class DropboxRestController {
 		HttpSession session = httpReq.getSession();
 		String contentOfFileRequested = null;
 		try {
-			String input = getFilesURL+fileName;
+			String input = URLEncoder.encode(fileName, "UTF-8").replace("+", "%20");
+			input = getFilesURL+input;
 			Client client = Client.create();
 			WebResource webResource = client.resource(input);
 			ClientResponse response = null;
