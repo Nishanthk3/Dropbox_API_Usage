@@ -65,6 +65,10 @@ $(function() {
 	<br />
 		<h4>Contact</h4>
 		<h5>I'm Nishanth Reddy Kommidi, developer of EditOnFly application, and can be contacted through email. Id: nishanth.k3@gmail.com</h5>
+	<br />
+		<h4><a href="https://chrome.google.com/webstore/detail/sports-live-scores/hdagdpbhiimpmdejfjimdpdlhdbdglac" target="_blank">Sports Live Scores Chrome Extension</a></h4>
+		<h5>Developed a chrome extension that shows Live scores and news of Cricket, English Premier League, UEFA Champions League, Bundesliga, FA Cup Football.
+		</h5>
 	</div>
 	<br />
 </body>

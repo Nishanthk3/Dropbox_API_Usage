@@ -75,6 +75,7 @@
 			<div>
 				<button class="onmouseover" type="button" id="btn_sign_on" onclick="signIn();">Dropbox Log In</button>
 				<button class="onmouseover" type="button" id="btn_sign_out" onclick="signOut();">Log Out</button>
+				<h4 class="onmouseover" onclick ="location.href='about';"><u>About</u></h4>
 			</div>
 		</div>
 	</div>
@@ -106,7 +107,7 @@
 	</div>
 	
 	 <div align="center" style = "width:100%">
-	 	<h5 class="onmouseover" onclick ="location.href='about';"><u>About</u></h5>
+	 	<!-- <h5 class="onmouseover" onclick ="location.href='about';"><u>About</u></h5> -->
 	 </div>
 </body>
 </html>
