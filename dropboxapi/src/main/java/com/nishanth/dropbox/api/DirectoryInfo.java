@@ -1,5 +1,8 @@
 package com.nishanth.dropbox.api;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class DirectoryInfo {
 	private String path;
 	private String is_dir;

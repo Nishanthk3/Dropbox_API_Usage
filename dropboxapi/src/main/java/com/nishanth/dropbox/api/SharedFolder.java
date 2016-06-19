@@ -1,7 +1,9 @@
 package com.nishanth.dropbox.api;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonRootName;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 @JsonRootName(value = "sharedFolder")
 public class SharedFolder {
 	
